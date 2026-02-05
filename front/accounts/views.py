@@ -5,7 +5,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from django.views.decorators.csrf import csrf_exempt
 
 from django.contrib.auth import get_user_model
 
@@ -47,7 +48,9 @@ class RegisterView(APIView):
             },
             status=status.HTTP_201_CREATED
         )
+@csrf_exempt
 @api_view(["POST"])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def bootstrap_admin(request):
     token = request.headers.get("X-BOOTSTRAP-TOKEN")
