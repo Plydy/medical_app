@@ -42,3 +42,15 @@ class RegisterView(APIView):
             },
             status=status.HTTP_201_CREATED
         )
+@api_view(["POST"])
+def create_admin(request):
+    if User.objects.filter(is_superuser=True).exists():
+        return Response({"error": "Admin already exists"}, status=400)
+
+    user = User.objects.create_superuser(
+        username="admin",
+        password="Admin123!",
+        email="admin@clinic.com"
+    )
+
+    return Response({"status": "Admin created"})
