@@ -6,5 +6,4 @@ urlpatterns = [
     path("patients/", PatientListView.as_view()),
     path("me/", MeView.as_view()),
     path("auth/register/", RegisterView.as_view()),
-    path("auth/bootstrap-admin/", bootstrap_admin),
 ]
