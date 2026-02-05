@@ -1,3 +1,5 @@
+import os
+from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -43,14 +45,30 @@ class RegisterView(APIView):
             status=status.HTTP_201_CREATED
         )
 @api_view(["POST"])
-def create_admin(request):
-    if User.objects.filter(is_superuser=True).exists():
-        return Response({"error": "Admin already exists"}, status=400)
+@permission_classes([AllowAny])
+def bootstrap_admin(request):
+    token = request.headers.get("X-BOOTSTRAP-TOKEN")
+    expected = os.environ.get("ADMIN_BOOTSTRAP_TOKEN")
+    if not expected or token != expected:
+        return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
 
-    user = User.objects.create_superuser(
-        username="admin",
-        password="Admin123!",
-        email="admin@clinic.com"
-    )
+    User = get_user_model()
 
-    return Response({"status": "Admin created"})
+    username = os.environ.get("BOOTSTRAP_ADMIN_USERNAME", "admin")
+    email = os.environ.get("BOOTSTRAP_ADMIN_EMAIL", "admin@clinic.com")
+    password = os.environ.get("BOOTSTRAP_ADMIN_PASSWORD", "Admin123!")
+
+    # если уже есть admin — просто говорим ок
+    u = User.objects.filter(username=username).first()
+    if u:
+        u.is_staff = True
+        u.is_superuser = True
+        u.set_password(password)
+        u.save()
+        return Response({"detail": "Admin fixed/updated", "username": username}, status=200)
+
+    u = User.objects.create_user(username=username, email=email, password=password)
+    u.is_staff = True
+    u.is_superuser = True
+    u.save()
+    return Response({"detail": "Admin created", "username": username}, status=201)
