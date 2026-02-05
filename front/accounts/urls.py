@@ -1,6 +1,5 @@
 from django.urls import path
 from .views import PatientListView, MeView, RegisterView
-from .views import bootstrap_admin
 
 urlpatterns = [
     path("patients/", PatientListView.as_view()),
